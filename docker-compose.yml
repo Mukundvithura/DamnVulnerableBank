@@ -1,0 +1,42 @@
+# BankVWA training lab.
+#   Start:  docker compose up -d --build     then open http://localhost:8090
+#   Reset:  docker compose exec app php setup.php
+#   Stop:   docker compose down              (add -v to also delete the database)
+#
+# This app will contain deliberately vulnerable labs, so it is bound to 127.0.0.1:
+# reachable from this computer only, never from your network.
+
+services:
+  app:
+    build: .
+    ports:
+      - "127.0.0.1:8090:80"
+    environment:
+      APP_URL: http://localhost:8090
+      DB_HOST: db
+      DB_PORT: "3306"
+      DB_NAME: bankvwa
+      DB_USER: bankvwa
+      DB_PASS: bankvwa_pass
+    depends_on:
+      db:
+        condition: service_healthy   # wait until MariaDB accepts connections
+
+  db:
+    image: mariadb:11
+    environment:
+      MARIADB_RANDOM_ROOT_PASSWORD: "1"
+      MARIADB_DATABASE: bankvwa
+      MARIADB_USER: bankvwa
+      MARIADB_PASSWORD: bankvwa_pass
+    volumes:
+      - db-data:/var/lib/mysql      # data survives container restarts
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    # No "ports:" on purpose: only the app container can reach the database.
+
+volumes:
+  db-data:

