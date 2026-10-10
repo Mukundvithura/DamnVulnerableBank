@@ -25,7 +25,10 @@ $showAccount = isset($transactions[0]['type']);
                 <time datetime="<?= e(date('c', strtotime($t['created_at']))) ?>"><?= e(date('d M Y', strtotime($t['created_at']))) ?></time>
                 <?php if ($showAccount): // phones only: account folded into the date line ?><span class="txn-meta-extra"> · <?= e(ucfirst($t['type'])) ?></span><?php endif; ?>
             </td>
-            <td class="txn-desc"><?= e($t['description']) ?></td>
+            <!-- VULN (stored XSS): a transfer note typed by the SENDER ends up in the
+                 RECIPIENT's transaction description and is printed raw, without e().
+                 So Arjun can run script in Priya's browser by sending her a payment. -->
+            <td class="txn-desc"><?= $t['description'] ?></td>
             <?php if ($showAccount): ?><td class="txn-account"><?= e(ucfirst($t['type'])) ?></td><?php endif; ?>
             <td class="txn-type"><span class="badge <?= $credit ? 'credit' : 'debit' ?>"><?= $credit ? 'Credit' : 'Debit' ?></span></td>
             <td class="amount <?= $credit ? 'credit' : 'debit' ?>">

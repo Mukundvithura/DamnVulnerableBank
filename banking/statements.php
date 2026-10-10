@@ -2,6 +2,21 @@
 require_once __DIR__ . '/../includes/auth.php';
 $user = require_login();
 
+// VULN (directory traversal): serves an "archived" statement file by name from the
+// statements/ folder, but the name from ?file= is used unsanitised. A payload like
+// ?file=../../config/config.php climbs out of the folder and leaks any readable file.
+if (($file = param($_GET, 'file')) !== '') {
+    $path = __DIR__ . '/statements/' . $file;   // no basename(), no realpath() allowlist
+    if (is_file($path)) {
+        header('Content-Type: text/plain; charset=utf-8');
+        readfile($path);
+    } else {
+        http_response_code(404);
+        echo "File not found: $path";
+    }
+    exit;
+}
+
 // Spreadsheet apps run cells starting with = + - @ as formulas ("CSV injection").
 // A leading ' makes Excel/Sheets treat the cell as plain text.
 function csv_safe(string $text): string
@@ -133,6 +148,7 @@ require __DIR__ . '/../includes/header.php';
 
 <?php else: ?>
     <h1>Statements</h1>
+    <p class="no-print"><a class="btn-small ghost-blue" href="?file=statement-arjun-2026-10.txt">Download archived statement</a></p>
     <?php if (!$byAccount): ?>
         <div class="card"><p class="muted">No statements yet. They appear once an account has transactions.</p></div>
     <?php endif; ?>

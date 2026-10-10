@@ -35,6 +35,7 @@ require __DIR__ . '/../includes/header.php';
     <div class="toolbar">
         <h2>Audit Log</h2>
         <a class="btn-small ghost-blue" href="<?= BASE_URL ?>/admin/users.php">Manage users →</a>
+        <a class="btn-small ghost-blue" href="<?= BASE_URL ?>/admin/diagnostics.php">Server diagnostics →</a>
     </div>
     <?php if (!$events): ?>
         <p class="muted">No events yet.</p>

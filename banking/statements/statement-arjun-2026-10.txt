@@ -1,0 +1,8 @@
+BankVWA — Archived Account Statement (sample, fictional)
+Account holder : Arjun Mehta
+Account number : •••• 0401
+Period         : October 2026
+
+This is an archived plain-text copy of a statement, served by statements.php
+via the ?file= parameter. It exists so the legitimate download path works.
+All data here is fictional lab data.

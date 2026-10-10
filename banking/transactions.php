@@ -107,7 +107,7 @@ require __DIR__ . '/../includes/header.php';
 
 <section class="card">
     <div class="summary">
-        <span><strong><?= count($transactions) ?></strong> transaction<?= count($transactions) === 1 ? '' : 's' ?><?php if ($q !== ''): ?> matching “<?= e($q) ?>”<?php endif; ?></span>
+        <span><strong><?= count($transactions) ?></strong> transaction<?= count($transactions) === 1 ? '' : 's' ?><?php if ($q !== ''): ?> matching “<?= $q /* VULN (reflected XSS): search term echoed without e() */ ?>”<?php endif; ?></span>
         <span class="credit">In: <?= money($credits) ?></span>
         <span class="debit">Out: <?= money($debits) ?></span>
     </div>

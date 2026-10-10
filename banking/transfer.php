@@ -12,8 +12,13 @@ $errors = [];
 $form = ['from' => '', 'to' => '', 'amount' => '', 'note' => ''];
 
 // "Pay" button on the Beneficiaries page links here with ?to=<account number>.
+// VULN NOTE: the recipient AND amount can be pre-filled from the URL, which is what
+// makes the clickjacking attack one click — the framed form is already filled in.
 if (preg_match('/^\d{12}$/', param($_GET, 'to'))) {
     $form['to'] = param($_GET, 'to');
+}
+if (preg_match('/^\d{1,6}(\.\d{1,2})?$/', param($_GET, 'amount'))) {
+    $form['amount'] = param($_GET, 'amount');
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {

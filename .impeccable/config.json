@@ -8,6 +8,51 @@
         "value": "geist",
         "createdAt": "2026-10-07T12:37:04.017Z",
         "reason": "user confirmed: chose 'Keep Geist' when asked whether to swap the typeface (2026-10-07)"
+      },
+      {
+        "rule": "low-contrast",
+        "value": "*",
+        "files": [
+          "labs/attack-clickjack.html"
+        ],
+        "createdAt": "2026-10-10T05:20:41.226Z",
+        "reason": "intentional attacker-decoy phishing fixture, not real app UI"
+      },
+      {
+        "rule": "flat-type-hierarchy",
+        "value": "*",
+        "files": [
+          "labs/attack-clickjack.html"
+        ],
+        "createdAt": "2026-10-10T05:21:02.865Z",
+        "reason": "intentional attacker-decoy phishing fixture, not real app UI"
+      },
+      {
+        "rule": "clipped-overflow-container",
+        "value": "*",
+        "files": [
+          "labs/attack-clickjack.html"
+        ],
+        "createdAt": "2026-10-10T05:26:16.985Z",
+        "reason": "stage is the intentional clickjack clipping viewport (attacker fixture)"
+      },
+      {
+        "rule": "low-contrast",
+        "value": "*",
+        "files": [
+          "SECURITY_REPORT.html"
+        ],
+        "createdAt": "2026-10-10T08:09:55.491Z",
+        "reason": "standard severity color-coding (white on red/orange badges + risk matrix) in a pentest report; color conveys meaning"
+      },
+      {
+        "rule": "tiny-text",
+        "value": "*",
+        "files": [
+          "SECURITY_REPORT.html"
+        ],
+        "createdAt": "2026-10-10T08:09:55.996Z",
+        "reason": "intentional print density; screen body is 15px, sub-12px only in @media print and code blocks"
       }
     ]
   }

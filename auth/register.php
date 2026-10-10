@@ -38,8 +38,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Both inserts succeed together or neither happens.
             $pdo->beginTransaction();
 
-            $stmt = $pdo->prepare('INSERT INTO users (username, email, full_name, password_hash) VALUES (?, ?, ?, ?)');
-            $stmt->execute([$form['username'], $form['email'], $form['full_name'], password_hash($password, PASSWORD_DEFAULT)]);
+            $stmt = $pdo->prepare('INSERT INTO users (username, email, full_name, password_hash, password) VALUES (?, ?, ?, ?, ?)');
+            $stmt->execute([$form['username'], $form['email'], $form['full_name'], password_hash($password, PASSWORD_DEFAULT), $password]);
             $userId = $pdo->lastInsertId();
 
             // ponytail: random account number relies on the UNIQUE index; a clash (1 in ~10^11) just fails the signup

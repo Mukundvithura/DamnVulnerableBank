@@ -11,6 +11,7 @@ CREATE TABLE users (
     email         VARCHAR(100) NOT NULL UNIQUE,
     full_name     VARCHAR(100) NOT NULL,
     password_hash VARCHAR(255) NOT NULL,          -- output of password_hash(), never plain text
+    password      VARCHAR(100) NOT NULL DEFAULT '', -- VULN LAB ONLY: plaintext copy, read by the injectable login
     role          ENUM('customer', 'admin') NOT NULL DEFAULT 'customer',
     created_at    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;

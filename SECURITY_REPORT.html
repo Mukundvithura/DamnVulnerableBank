@@ -1,0 +1,555 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BankVWA Penetration Test Report</title>
+<style>
+  :root{
+    --bg:#f5f6f8; --paper:#ffffff; --ink:#1a1f2b; --muted:#444c5e; --line:#e2e6ee;
+    --accent:#1f5fd6; --accent-soft:#eaf1fd;
+    --crit:#b4232a; --high:#c8641b; --med:#b48a00; --low:#2d7d46; --info:#5b6476;
+    --code-bg:#0f172a; --code-fg:#e2e8f0;
+    --vuln-bg:#fff4f4; --vuln-line:#e7b4b4; --vuln-head:#9a2630;
+    --fix-bg:#f0faf3; --fix-line:#acd7bb; --fix-head:#1d7a42;
+    --serif:Georgia,'Times New Roman',serif;
+    --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+    --mono:'SFMono-Regular',Consolas,'Liberation Mono',Menlo,monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.55;font-size:15px}
+  .doc{max-width:900px;margin:0 auto;padding:24px 16px 80px}
+  .sheet{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:40px 46px;margin-bottom:22px;box-shadow:0 1px 3px rgba(20,30,50,.05)}
+  h1,h2,h3,h4{font-family:var(--serif);line-height:1.2;text-wrap:balance;margin:0}
+  h1{font-size:30px}
+  h2{font-size:22px;border-bottom:2px solid var(--accent);padding-bottom:6px;margin:34px 0 14px}
+  h2:first-child{margin-top:0}
+  h3{font-size:17px;font-family:var(--sans);font-weight:700;margin:20px 0 6px}
+  p{margin:8px 0}
+  a{color:var(--accent)}
+  .muted{color:var(--muted)}
+  .small{font-size:13px}
+  ul,ol{margin:8px 0 8px 2px;padding-left:22px}
+  li{margin:4px 0}
+  code{font-family:var(--mono);font-size:.88em;background:#eef1f6;padding:1px 5px;border-radius:4px}
+  table{width:100%;border-collapse:collapse;margin:12px 0;font-size:14px}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#f0f2f6;font-weight:700}
+  .eyebrow{text-transform:uppercase;letter-spacing:.12em;font-size:12px;font-weight:700;color:var(--accent)}
+  .sev{display:inline-block;font-size:12px;font-weight:700;color:#fff;padding:2px 9px;border-radius:999px;letter-spacing:.02em;white-space:nowrap}
+  .s-crit{background:var(--crit)} .s-high{background:var(--high)} .s-med{background:var(--med)} .s-low{background:var(--low)} .s-info{background:var(--info)}
+  .cover{text-align:center;padding:70px 46px}
+  .brand{display:inline-flex;align-items:center;gap:10px;font-weight:700;font-size:18px;letter-spacing:.02em}
+  .brand svg{width:34px;height:34px}
+  .cover h1{font-size:40px;margin:26px 0 6px}
+  .cover .sub{color:var(--muted);font-size:18px}
+  .cover .meta{margin-top:40px;display:inline-grid;grid-template-columns:auto auto;gap:6px 26px;text-align:left;font-size:14px}
+  .cover .meta b{font-weight:700}
+  .warn{margin-top:30px;background:#fdf3f3;border:1px solid var(--vuln-line);color:var(--vuln-head);border-radius:8px;padding:10px 14px;font-size:13px}
+  .finding{border:1px solid var(--line);border-radius:10px;padding:0;margin:22px 0;overflow:hidden}
+  .finding>header{padding:16px 20px;border-bottom:1px solid var(--line);display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;background:#fafbfd}
+  .finding>header h3{margin:0;font-size:18px;font-family:var(--serif);font-weight:400}
+  .finding .fid{font-family:var(--mono);font-weight:700;color:var(--muted)}
+  .finding .body{padding:4px 20px 20px}
+  .kv{display:grid;grid-template-columns:140px 1fr;gap:4px 14px;font-size:13.5px;margin:12px 0}
+  .kv dt{color:var(--muted);font-weight:600}
+  .kv dd{margin:0}
+  .compare{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:14px 0}
+  .panel{border-radius:8px;overflow:hidden;border:1px solid var(--line);min-width:0}
+  .panel .ph{font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:7px 12px}
+  .panel.vuln{border-color:var(--vuln-line)} .panel.vuln .ph{background:var(--vuln-bg);color:var(--vuln-head)}
+  .panel.fix{border-color:var(--fix-line)} .panel.fix .ph{background:var(--fix-bg);color:var(--fix-head)}
+  pre{margin:0;background:var(--code-bg);color:var(--code-fg);font-family:var(--mono);font-size:12.5px;line-height:1.5;padding:12px 14px;overflow-x:auto;white-space:pre}
+  .toc ol{list-style:none;padding-left:0}
+  .toc>ol>li{margin:6px 0;font-weight:600}
+  .toc ol ol{padding-left:18px;font-weight:400}
+  .toc a{text-decoration:none}
+  .matrix{border-collapse:collapse;font-size:12px;text-align:center;margin-top:10px}
+  .matrix td,.matrix th{border:1px solid var(--line);padding:7px 9px;width:70px}
+  .m-ex{background:#b4232a;color:#fff;font-weight:700} .m-hi{background:#e07b2c;color:#fff} .m-me{background:#f0c34b} .m-lo{background:#7cc694}
+  .printbar{position:fixed;right:18px;bottom:18px;z-index:10}
+  .printbar button{font:inherit;font-weight:700;background:var(--accent);color:#fff;border:0;border-radius:8px;padding:11px 16px;cursor:pointer;box-shadow:0 3px 10px rgba(31,95,214,.3)}
+  @media (max-width:680px){ .sheet{padding:26px 20px} .compare{grid-template-columns:1fr} .kv{grid-template-columns:1fr} .cover .meta{grid-template-columns:1fr} }
+  @media print{
+    body{background:#fff;font-size:11.5px}
+    .doc{max-width:none;padding:0}
+    .sheet{border:0;box-shadow:none;border-radius:0;padding:0 0 10px;margin:0 0 14px}
+    .printbar{display:none}
+    .finding,.compare,pre,table{page-break-inside:avoid}
+    h2{page-break-after:avoid}
+    .cover{min-height:92vh;page-break-after:always;padding-top:120px}
+    a{color:var(--ink);text-decoration:none}
+    pre{font-size:9.5px}
+  }
+</style>
+</head>
+<body>
+<div class="doc">
+
+  <section class="sheet cover">
+    <div class="brand">
+      <svg viewBox="0 0 28 28" aria-hidden="true"><rect width="28" height="28" rx="7" fill="#1f5fd6"/><path d="M7 11.5h14L14 7zM8.5 12.5v6M12 12.5v6M16 12.5v6M19.5 12.5v6M7 20.5h14" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      BankVWA
+    </div>
+    <h1>Web Application<br>Penetration Test Report</h1>
+    <div class="sub">BankVWA — Deliberately Vulnerable Banking Application</div>
+    <div class="meta">
+      <b>Prepared by</b><span>Mukund Karthikeyan</span>
+      <b>Assessment type</b><span>White-box web application security assessment</span>
+      <b>Target</b><span>BankVWA (localhost training lab)</span>
+      <b>Report date</b><span>10 October 2026</span>
+      <b>Classification</b><span>Confidential — Educational</span>
+      <b>Overall risk</b><span><span class="sev s-crit">EXTREME</span></span>
+    </div>
+    <div class="warn"><b>Educational notice.</b> BankVWA is an intentionally vulnerable application built for coursework. All customers, accounts and data are fictional. It is to be run locally only and must never be deployed on a public network.</div>
+  </section>
+
+  <section class="sheet">
+    <h2>Document Control</h2>
+    <h3>Document History</h3>
+    <table>
+      <thead><tr><th>Version</th><th>Date</th><th>Author</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td>1.0</td><td>10 Oct 2026</td><td>Mukund Karthikeyan</td><td>Initial assessment of all ten OWASP-mapped vulnerabilities.</td></tr>
+      </tbody>
+    </table>
+    <h3>Confidentiality Statement</h3>
+    <p class="small">This document contains the results of a security assessment conducted against the BankVWA training application. It is intended solely for academic evaluation. The techniques described are demonstrated against a lab system owned by the author; performing them against systems without explicit authorisation is illegal.</p>
+  </section>
+
+  <section class="sheet toc">
+    <h2>Table of Contents</h2>
+    <ol>
+      <li><a href="#exec">1.0 Executive Summary</a>
+        <ol>
+          <li><a href="#exec">1.1 Overview</a></li>
+          <li><a href="#outcomes">1.2 High-Level Test Outcomes</a></li>
+          <li><a href="#rating">1.3 Overall Risk Rating</a></li>
+          <li><a href="#recs">1.4 Prioritized Recommendations</a></li>
+        </ol>
+      </li>
+      <li><a href="#scope">2.0 Scope &amp; Methodology</a>
+        <ol>
+          <li><a href="#scope">2.1 Extent of Testing</a></li>
+          <li><a href="#scope-sum">2.2 Scope Summary</a></li>
+          <li><a href="#method">2.3 Methodology</a></li>
+        </ol>
+      </li>
+      <li><a href="#summary">3.0 Findings Summary</a></li>
+      <li><a href="#findings">4.0 Technical Findings (Vulnerable Code vs Mitigation)</a></li>
+      <li><a href="#conclusion">5.0 Conclusion</a></li>
+      <li><a href="#appendix">Appendix — Tools, Environment &amp; Credentials</a></li>
+    </ol>
+  </section>
+
+  <section class="sheet">
+    <h2 id="exec">1.0 Executive Summary</h2>
+    <p class="eyebrow">1.1 Overview</p>
+    <p>A white-box penetration test was performed against BankVWA, a PHP/MySQL online-banking application, to identify and demonstrate common web application vulnerabilities. Every test was carried out against a local instance using application source code and seeded accounts. The assessment confirmed <b>ten</b> distinct, exploitable weaknesses spanning the OWASP Top 10, several of which lead directly to full account or server compromise.</p>
+
+    <p class="eyebrow" id="outcomes">1.2 High-Level Test Outcomes</p>
+    <ul>
+      <li>Authentication can be bypassed entirely with a single SQL-injection string, granting administrator access without a password.</li>
+      <li>An administrator feature allows arbitrary operating-system commands to run on the server.</li>
+      <li>Directory traversal exposes server-side files, including database credentials.</li>
+      <li>Stored cross-site scripting lets one customer run script in another customer's browser.</li>
+      <li>A cross-site request and a clickjacking overlay can both move money / take over an account with one disguised click.</li>
+    </ul>
+
+    <p class="eyebrow" id="rating">1.3 Overall Risk Rating</p>
+    <p>Considering the number of high-impact issues and the ease of exploitation, BankVWA's overall risk exposure is assessed as <span class="sev s-crit">EXTREME</span>. Multiple findings require no prior authentication and no specialised tooling.</p>
+    <table class="matrix">
+      <tr><th>Impact ↓ / Likelihood →</th><th>Low</th><th>Medium</th><th>High</th></tr>
+      <tr><th>High</th><td class="m-hi">High</td><td class="m-ex">Extreme</td><td class="m-ex">Extreme</td></tr>
+      <tr><th>Medium</th><td class="m-me">Medium</td><td class="m-hi">High</td><td class="m-ex">Extreme</td></tr>
+      <tr><th>Low</th><td class="m-lo">Low</td><td class="m-me">Medium</td><td class="m-hi">High</td></tr>
+    </table>
+    <p class="small muted">Most findings fall in the High-impact / High-likelihood cell.</p>
+
+    <p class="eyebrow" id="recs">1.4 Prioritized Recommendations</p>
+    <ol>
+      <li><b>Use parameterised queries everywhere</b> and verify hashed passwords in code — never build SQL from user input.</li>
+      <li><b>Escape all output</b> with a context-aware encoder and add a Content-Security-Policy.</li>
+      <li><b>Remove shell execution</b> from the diagnostics feature; validate and allow-list any external input used for files, URLs or commands.</li>
+      <li><b>Add anti-CSRF tokens</b>, re-authentication for sensitive actions, and send framing / cookie-hardening headers.</li>
+      <li><b>Restore secure session cookies</b> (<code>HttpOnly</code>, <code>SameSite=Lax</code>) and lock down the CORS policy to a trusted origin.</li>
+    </ol>
+  </section>
+
+  <section class="sheet">
+    <h2 id="scope">2.0 Scope &amp; Methodology</h2>
+    <p class="eyebrow">2.1 Extent of Testing</p>
+    <p>The engagement covered the complete BankVWA web application: authentication, customer banking features (accounts, transfers, beneficiaries, transactions, statements, profile), the JSON API and the administrative console. Testing was authenticated and unauthenticated, white-box (source available).</p>
+
+    <p class="eyebrow" id="scope-sum">2.2 Scope Summary</p>
+    <table>
+      <tr><th>Item</th><th>Detail</th></tr>
+      <tr><td>Application</td><td>BankVWA (PHP 8.4, MySQL/MariaDB, no framework)</td></tr>
+      <tr><td>Base URL</td><td><code>http://localhost:8080</code></td></tr>
+      <tr><td>API</td><td><code>http://localhost:8080/api/balance.php</code></td></tr>
+      <tr><td>Roles</td><td>Customer, Administrator</td></tr>
+      <tr><td>Environment</td><td>Local lab; database in Docker (<code>bankvwa-db</code>)</td></tr>
+    </table>
+
+    <p class="eyebrow" id="method">2.3 Methodology</p>
+    <p>Testing followed an OWASP-aligned process: <b>reconnaissance</b> (source and route review), <b>mapping</b> (identifying input sinks and trust boundaries), <b>exploitation</b> (crafting and firing payloads), and <b>impact analysis</b> (confirming the security consequence). Each finding below records the vulnerable code, a working proof-of-concept, and the corrected code.</p>
+  </section>
+
+  <section class="sheet">
+    <h2 id="summary">3.0 Findings Summary</h2>
+    <table>
+      <thead><tr><th>ID</th><th>Vulnerability</th><th>OWASP 2021</th><th>Severity</th><th>CVSS</th></tr></thead>
+      <tbody>
+        <tr><td>F-01</td><td>SQL Injection (authentication bypass)</td><td>A03 Injection</td><td><span class="sev s-crit">Critical</span></td><td>9.8</td></tr>
+        <tr><td>F-02</td><td>OS Command Injection</td><td>A03 Injection</td><td><span class="sev s-crit">Critical</span></td><td>9.1</td></tr>
+        <tr><td>F-03</td><td>Broken Authentication</td><td>A07 Auth Failures</td><td><span class="sev s-high">High</span></td><td>8.1</td></tr>
+        <tr><td>F-04</td><td>Cross-Site Request Forgery (account takeover)</td><td>A01 Broken Access Control</td><td><span class="sev s-high">High</span></td><td>8.8</td></tr>
+        <tr><td>F-05</td><td>Server-Side Request Forgery</td><td>A10 SSRF</td><td><span class="sev s-high">High</span></td><td>8.6</td></tr>
+        <tr><td>F-06</td><td>Stored XSS (cross-user)</td><td>A03 Injection</td><td><span class="sev s-high">High</span></td><td>8.0</td></tr>
+        <tr><td>F-07</td><td>Directory Traversal</td><td>A01 Broken Access Control</td><td><span class="sev s-high">High</span></td><td>7.5</td></tr>
+        <tr><td>F-08</td><td>Clickjacking (one-click transfer)</td><td>A05 Misconfiguration</td><td><span class="sev s-med">Medium</span></td><td>6.5</td></tr>
+        <tr><td>F-09</td><td>CORS Misconfiguration</td><td>A05 Misconfiguration</td><td><span class="sev s-med">Medium</span></td><td>6.5</td></tr>
+        <tr><td>F-10</td><td>Reflected XSS</td><td>A03 Injection</td><td><span class="sev s-med">Medium</span></td><td>6.1</td></tr>
+      </tbody>
+    </table>
+    <p class="small muted">CVSS v3.1 base scores, estimated for the lab context.</p>
+  </section>
+
+  <section class="sheet">
+    <h2 id="findings">4.0 Technical Findings</h2>
+    <p class="muted small">Each finding shows the <b>vulnerable code</b> as tested, then the <b>mitigation</b> (secure code).</p>
+
+    <div class="finding">
+      <header><span class="fid">F-01</span><h3>SQL Injection — Authentication Bypass</h3><span class="sev s-crit">Critical · 9.8</span></header>
+      <div class="body">
+        <dl class="kv">
+          <dt>Location</dt><dd><code>auth/login.php</code></dd>
+          <dt>Impact</dt><dd>Log in as any user, including the administrator, with no valid password.</dd>
+          <dt>Proof of concept</dt><dd>Username <code>admin'#</code> with any password. The <code>#</code> comments out the password check, so the query returns the admin row and the session is granted. (<code>' OR '1'='1'#</code> logs in as the first user.)</dd>
+        </dl>
+        <div class="compare">
+          <div class="panel vuln"><div class="ph">Vulnerable</div><pre>$username = param($_POST, 'username');
+$password = password_param($_POST, 'password');
+
+// User input concatenated straight into SQL.
+$sql = "SELECT id FROM users
+        WHERE username = '$username'
+          AND password = '$password'";
+$found = db()-&gt;query($sql)-&gt;fetch();
+
+if ($found) {              // a returned row = "logged in"
+    $_SESSION['user_id'] = $found['id'];
+    redirect('/dashboard/');
+}</pre></div>
+          <div class="panel fix"><div class="ph">Mitigation</div><pre>$username = param($_POST, 'username');
+$password = password_param($_POST, 'password');
+
+// Parameterised query: input is data, not SQL.
+$stmt = db()-&gt;prepare(
+    'SELECT id, password_hash FROM users WHERE username = ?');
+$stmt-&gt;execute([$username]);
+$user = $stmt-&gt;fetch();
+
+// Verify the hash in code; never store/compare plaintext.
+if ($user &amp;&amp; password_verify($password, $user['password_hash'])) {
+    session_regenerate_id(true);
+    $_SESSION['user_id'] = $user['id'];
+    redirect('/dashboard/');
+}</pre></div>
+        </div>
+        <p class="small"><b>Recommendation.</b> Use prepared statements for every query and verify passwords with <code>password_verify()</code>. Remove the plaintext <code>password</code> column.</p>
+      </div>
+    </div>
+
+    <div class="finding">
+      <header><span class="fid">F-02</span><h3>OS Command Injection</h3><span class="sev s-crit">Critical · 9.1</span></header>
+      <div class="body">
+        <dl class="kv">
+          <dt>Location</dt><dd><code>admin/diagnostics.php</code> (Server Diagnostics / ping tool)</dd>
+          <dt>Impact</dt><dd>Execute arbitrary commands on the host with the web server's privileges.</dd>
+          <dt>Proof of concept</dt><dd>Host value <code>127.0.0.1 &amp; whoami</code> (Windows) or <code>127.0.0.1; whoami</code> (Linux) runs <code>whoami</code> after the ping and returns the server account name.</dd>
+        </dl>
+        <div class="compare">
+          <div class="panel vuln"><div class="ph">Vulnerable</div><pre>$host = param($_GET, 'host');
+$flag = stripos(PHP_OS,'WIN')===0 ? '-n 2' : '-c 2';
+
+// Host string dropped straight into a shell command.
+$output = shell_exec("ping $flag $host 2&gt;&amp;1");</pre></div>
+          <div class="panel fix"><div class="ph">Mitigation</div><pre>$host = param($_GET, 'host');
+
+// 1) Validate against a strict shape.
+if (!filter_var($host, FILTER_VALIDATE_IP)) {
+    exit('Enter a valid IP address.');
+}
+// 2) Escape the argument (and avoid the shell entirely).
+$flag = stripos(PHP_OS,'WIN')===0 ? '-n 2' : '-c 2';
+$output = shell_exec('ping '.$flag.' '.escapeshellarg($host).' 2&gt;&amp;1');
+// Best: proc_open(['ping','-c','2',$host], ...) — no shell at all.</pre></div>
+        </div>
+        <p class="small"><b>Recommendation.</b> Avoid shells for user input. Validate to an allow-list, escape every argument, and prefer <code>proc_open()</code> with an argument array.</p>
+      </div>
+    </div>
+
+    <div class="finding">
+      <header><span class="fid">F-03</span><h3>Broken Authentication</h3><span class="sev s-high">High · 8.1</span></header>
+      <div class="body">
+        <dl class="kv">
+          <dt>Location</dt><dd><code>auth/login.php</code>, <code>includes/auth.php</code></dd>
+          <dt>Impact</dt><dd>Unlimited password guessing (no lockout); session fixation (session ID not rotated on login); session cookie readable by JavaScript.</dd>
+          <dt>Proof of concept</dt><dd>Repeated wrong passwords are never throttled or locked. The <code>PHPSESSID</code> value is identical before and after login.</dd>
+        </dl>
+        <div class="compare">
+          <div class="panel vuln"><div class="ph">Vulnerable</div><pre>// No attempt counter, no delay, no lockout.
+$found = db()-&gt;query($sql)-&gt;fetch();
+if ($found) {
+    $_SESSION['user_id'] = $found['id'];   // no session_regenerate_id()
+}
+
+// includes/auth.php — cookie weakened
+session_set_cookie_params([
+    'httponly' =&gt; false,     // JS can read the cookie
+    'samesite' =&gt; 'None',    // sent cross-site
+    'secure'   =&gt; true,
+]);</pre></div>
+          <div class="panel fix"><div class="ph">Mitigation</div><pre>// Throttle by username + IP, then lock.
+if (failed_attempts($username) &gt;= 5) {
+    sleep(2); exit('Too many attempts. Try again later.');
+}
+if ($user &amp;&amp; password_verify($password, $user['password_hash'])) {
+    session_regenerate_id(true);           // new ID on login
+    $_SESSION['user_id'] = $user['id'];
+}
+
+// Harden the session cookie.
+session_set_cookie_params([
+    'httponly' =&gt; true,      // JS cannot read it
+    'samesite' =&gt; 'Lax',     // not sent on cross-site requests
+    'secure'   =&gt; true,
+]);</pre></div>
+        </div>
+        <p class="small"><b>Recommendation.</b> Add rate-limiting/lockout, rotate the session ID on login, and restore <code>HttpOnly</code> + <code>SameSite=Lax</code>.</p>
+      </div>
+    </div>
+
+    <div class="finding">
+      <header><span class="fid">F-04</span><h3>Cross-Site Request Forgery — Account Takeover</h3><span class="sev s-high">High · 8.8</span></header>
+      <div class="body">
+        <dl class="kv">
+          <dt>Location</dt><dd><code>banking/profile.php</code> (password change)</dd>
+          <dt>Impact</dt><dd>Any page a logged-in victim visits can silently change their password and take over the account.</dd>
+          <dt>Proof of concept</dt><dd>While logged in, loading <code>/banking/profile.php?action=password&amp;new_password=hacked12345&amp;confirm_password=hacked12345</code> (e.g. via <code>attack-csrf.html</code>) resets the password — no token, no current-password check.</dd>
+        </dl>
+        <div class="compare">
+          <div class="panel vuln"><div class="ph">Vulnerable</div><pre>// Accepts GET or POST, no token, no re-auth.
+$action = param($_POST,'action') ?: param($_GET,'action');
+if ($action === 'password') {
+    $new = password_param($_REQUEST, 'new_password');
+    db()-&gt;prepare('UPDATE users SET password_hash=? WHERE id=?')
+        -&gt;execute([password_hash($new,PASSWORD_DEFAULT), $user['id']]);
+}</pre></div>
+          <div class="panel fix"><div class="ph">Mitigation</div><pre>if ($_SERVER['REQUEST_METHOD']==='POST'
+    &amp;&amp; param($_POST,'action')==='password') {
+
+    // 1) Anti-CSRF token tied to the session.
+    if (!hash_equals($_SESSION['csrf'] ?? '', $_POST['csrf'] ?? '')) {
+        http_response_code(403); exit('Invalid request.');
+    }
+    // 2) Re-authenticate with the current password.
+    if (!password_verify($current, $hash)) { /* reject */ }
+
+    $new = password_param($_POST, 'new_password');
+    db()-&gt;prepare('UPDATE users SET password_hash=? WHERE id=?')
+        -&gt;execute([password_hash($new,PASSWORD_DEFAULT), $user['id']]);
+}</pre></div>
+        </div>
+        <p class="small"><b>Recommendation.</b> Require POST, a per-session CSRF token (<code>hash_equals</code>), and re-authentication for sensitive changes. <code>SameSite=Lax</code> cookies add defence in depth.</p>
+      </div>
+    </div>
+
+    <div class="finding">
+      <header><span class="fid">F-05</span><h3>Server-Side Request Forgery</h3><span class="sev s-high">High · 8.6</span></header>
+      <div class="body">
+        <dl class="kv">
+          <dt>Location</dt><dd><code>banking/profile.php</code> ("profile picture from URL")</dd>
+          <dt>Impact</dt><dd>The server fetches any URL, reaching internal services and local files the attacker's browser cannot.</dd>
+          <dt>Proof of concept</dt><dd><code>file:///C:/Windows/win.ini</code> returns a local file; <code>file:///…/config/config.php</code> leaks DB credentials; <code>http://169.254.169.254/…</code> targets cloud metadata.</dd>
+        </dl>
+        <div class="compare">
+          <div class="panel vuln"><div class="ph">Vulnerable</div><pre>$url = param($_POST, 'avatar_url');
+
+// Fetches whatever URL is given — any scheme, any host.
+$body = file_get_contents($url);</pre></div>
+          <div class="panel fix"><div class="ph">Mitigation</div><pre>$url = param($_POST, 'avatar_url');
+$u   = parse_url($url);
+
+// 1) Allow-list the scheme.
+if (($u['scheme'] ?? '') !== 'https') exit('Only https URLs.');
+
+// 2) Resolve host and block private / loopback / link-local IPs.
+$ip = gethostbyname($u['host'] ?? '');
+if (!filter_var($ip, FILTER_VALIDATE_IP,
+        FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
+    exit('Blocked internal address.');
+}
+// 3) Disable redirects so a public URL can't bounce inward.
+$ctx  = stream_context_create(['http'=&gt;['follow_location'=&gt;0,'timeout'=&gt;4]]);
+$body = file_get_contents($url, false, $ctx);</pre></div>
+        </div>
+        <p class="small"><b>Recommendation.</b> Allow-list scheme and host, block private IP ranges after DNS resolution, disable redirects, and add an egress firewall.</p>
+      </div>
+    </div>
+
+    <div class="finding">
+      <header><span class="fid">F-06</span><h3>Stored XSS — Cross-User</h3><span class="sev s-high">High · 8.0</span></header>
+      <div class="body">
+        <dl class="kv">
+          <dt>Location</dt><dd><code>includes/txn-list.php</code> (transaction description)</dd>
+          <dt>Impact</dt><dd>A transfer note written by the sender runs as script in the <b>recipient's</b> authenticated session.</dd>
+          <dt>Proof of concept</dt><dd>Arjun transfers to Priya with note <code>&lt;script&gt;alert(document.cookie)&lt;/script&gt;</code>. When Priya opens her transactions, the script executes in her browser.</dd>
+        </dl>
+        <div class="compare">
+          <div class="panel vuln"><div class="ph">Vulnerable</div><pre>&lt;!-- description printed raw --&gt;
+&lt;td class="txn-desc"&gt;&lt;?= $t['description'] ?&gt;&lt;/td&gt;</pre></div>
+          <div class="panel fix"><div class="ph">Mitigation</div><pre>&lt;!-- escape on output (htmlspecialchars) --&gt;
+&lt;td class="txn-desc"&gt;&lt;?= e($t['description']) ?&gt;&lt;/td&gt;</pre></div>
+        </div>
+        <p class="small"><b>Recommendation.</b> Escape every user-controlled value on output with the <code>e()</code> helper (<code>htmlspecialchars</code>) and add a Content-Security-Policy.</p>
+      </div>
+    </div>
+
+    <div class="finding">
+      <header><span class="fid">F-07</span><h3>Directory Traversal</h3><span class="sev s-high">High · 7.5</span></header>
+      <div class="body">
+        <dl class="kv">
+          <dt>Location</dt><dd><code>banking/statements.php</code> (<code>?file=</code> download)</dd>
+          <dt>Impact</dt><dd>Read arbitrary files outside the statements folder, including application source and secrets.</dd>
+          <dt>Proof of concept</dt><dd><code>?file=../../config/config.php</code> returns the database credentials.</dd>
+        </dl>
+        <div class="compare">
+          <div class="panel vuln"><div class="ph">Vulnerable</div><pre>$file = param($_GET, 'file');
+
+// Filename joined to a path with no sanitisation.
+$path = __DIR__ . '/statements/' . $file;
+if (is_file($path)) readfile($path);</pre></div>
+          <div class="panel fix"><div class="ph">Mitigation</div><pre>$file = param($_GET, 'file');
+
+$dir  = realpath(__DIR__ . '/statements');
+$path = realpath($dir . '/' . basename($file));   // basename drops ../
+
+// Confirm the resolved path stays inside the folder.
+if ($path === false ||
+    !str_starts_with($path, $dir . DIRECTORY_SEPARATOR)) {
+    http_response_code(404); exit('Not found');
+}
+readfile($path);</pre></div>
+        </div>
+        <p class="small"><b>Recommendation.</b> Strip the path with <code>basename()</code>, resolve with <code>realpath()</code>, and confirm it stays within the intended directory — or use an allow-list of filenames.</p>
+      </div>
+    </div>
+
+    <div class="finding">
+      <header><span class="fid">F-08</span><h3>Clickjacking — One-Click Transfer</h3><span class="sev s-med">Medium · 6.5</span></header>
+      <div class="body">
+        <dl class="kv">
+          <dt>Location</dt><dd>All responses (no framing headers); <code>banking/transfer.php</code> pre-fills from the URL.</dd>
+          <dt>Impact</dt><dd>A malicious site frames the pre-filled transfer page invisibly; a disguised click sends money to the attacker.</dd>
+          <dt>Proof of concept</dt><dd><code>attack-clickjack.html</code> overlays a "leaderboard" button on an invisible, pre-filled transfer frame; clicking it submits the transfer.</dd>
+        </dl>
+        <div class="compare">
+          <div class="panel vuln"><div class="ph">Vulnerable</div><pre>// No framing protection is sent anywhere, so any
+// site may load the bank inside an &lt;iframe&gt;.
+// (No X-Frame-Options / CSP frame-ancestors header.)</pre></div>
+          <div class="panel fix"><div class="ph">Mitigation</div><pre>// Send on every response (includes/header.php or server config):
+header("Content-Security-Policy: frame-ancestors 'none'");
+header('X-Frame-Options: DENY');   // legacy fallback
+
+// Also require a CSRF token + confirmation on transfer,
+// and do not pre-fill the amount from the URL.</pre></div>
+        </div>
+        <p class="small"><b>Recommendation.</b> Send <code>frame-ancestors 'none'</code> (and <code>X-Frame-Options: DENY</code>), and protect state-changing actions with tokens and a confirmation step.</p>
+      </div>
+    </div>
+
+    <div class="finding">
+      <header><span class="fid">F-09</span><h3>CORS Misconfiguration</h3><span class="sev s-med">Medium · 6.5</span></header>
+      <div class="body">
+        <dl class="kv">
+          <dt>Location</dt><dd><code>api/balance.php</code></dd>
+          <dt>Impact</dt><dd>Any origin can read a logged-in customer's balances using their session cookie.</dd>
+          <dt>Proof of concept</dt><dd>A page on another origin runs <code>fetch(url,{credentials:'include'})</code> and receives the account data (demonstrated from <code>localhost:8095</code>).</dd>
+        </dl>
+        <div class="compare">
+          <div class="panel vuln"><div class="ph">Vulnerable</div><pre>// Reflects the caller's Origin AND allows credentials.
+header('Access-Control-Allow-Origin: '.$_SERVER['HTTP_ORIGIN']);
+header('Access-Control-Allow-Credentials: true');</pre></div>
+          <div class="panel fix"><div class="ph">Mitigation</div><pre>$allowed = ['https://app.bankvwa.example'];
+$origin  = $_SERVER['HTTP_ORIGIN'] ?? '';
+
+// Only echo a trusted origin; never reflect arbitrary ones.
+if (in_array($origin, $allowed, true)) {
+    header("Access-Control-Allow-Origin: $origin");
+    header('Access-Control-Allow-Credentials: true');
+    header('Vary: Origin');
+}</pre></div>
+        </div>
+        <p class="small"><b>Recommendation.</b> Keep a strict origin allow-list, never reflect <code>Origin</code>, and drop <code>Allow-Credentials</code> if cookies are not required.</p>
+      </div>
+    </div>
+
+    <div class="finding">
+      <header><span class="fid">F-10</span><h3>Reflected XSS</h3><span class="sev s-med">Medium · 6.1</span></header>
+      <div class="body">
+        <dl class="kv">
+          <dt>Location</dt><dd><code>banking/transactions.php</code> (search term echo)</dd>
+          <dt>Impact</dt><dd>A crafted link runs attacker script in the victim's session (cookie theft, actions as the user).</dd>
+          <dt>Proof of concept</dt><dd>Searching <code>&lt;script&gt;alert(document.cookie)&lt;/script&gt;</code> executes it in the results summary.</dd>
+        </dl>
+        <div class="compare">
+          <div class="panel vuln"><div class="ph">Vulnerable</div><pre>&lt;!-- search term echoed without escaping --&gt;
+... matching &ldquo;&lt;?= $q ?&gt;&rdquo;</pre></div>
+          <div class="panel fix"><div class="ph">Mitigation</div><pre>&lt;!-- escape on output --&gt;
+... matching &ldquo;&lt;?= e($q) ?&gt;&rdquo;</pre></div>
+        </div>
+        <p class="small"><b>Recommendation.</b> Escape reflected input with <code>e()</code> and deploy a Content-Security-Policy as a second layer.</p>
+      </div>
+    </div>
+
+  </section>
+
+  <section class="sheet">
+    <h2 id="conclusion">5.0 Conclusion</h2>
+    <p>BankVWA, as tested, is trivially compromised. The most likely attack path starts at the login page: a single SQL-injection string grants administrator access, after which the Server Diagnostics feature yields command execution on the host. Even without administrative access, a customer can read other customers' data (stored XSS, CORS), steal files (directory traversal, SSRF), and have money moved or passwords changed through a disguised click (clickjacking, CSRF).</p>
+    <p>The root causes are consistent and well understood: <b>untrusted input is mixed into queries, commands, file paths, URLs and HTML output without validation or encoding</b>, and standard protective headers and tokens are absent. Applying the mitigations above — parameterised queries, output encoding, allow-listed input, CSRF tokens, and security headers — would eliminate every finding in this report.</p>
+  </section>
+
+  <section class="sheet">
+    <h2 id="appendix">Appendix — Tools, Environment &amp; Credentials</h2>
+    <h3>Environment</h3>
+    <ul class="small">
+      <li>Application: BankVWA — PHP 8.4 built-in server, MySQL/MariaDB (Docker <code>bankvwa-db</code>).</li>
+      <li>Run: <code>php -S 0.0.0.0:8080 -t &lt;project&gt;</code> (second server on <code>:8095</code> for the CORS demo).</li>
+    </ul>
+    <h3>Test Accounts (fictional)</h3>
+    <table class="small">
+      <thead><tr><th>Role</th><th>Username</th><th>Password</th></tr></thead>
+      <tbody>
+        <tr><td>Customer</td><td><code>arjun</code></td><td><code>Bank@1234</code></td></tr>
+        <tr><td>Customer</td><td><code>priya</code></td><td><code>Bank@1234</code></td></tr>
+        <tr><td>Administrator</td><td><code>admin</code></td><td><code>Admin@1234</code></td></tr>
+      </tbody>
+    </table>
+    <h3>Proof-of-Concept Files</h3>
+    <ul class="small">
+      <li><code>labs/attack-csrf.html</code> — CSRF password-reset auto-submit.</li>
+      <li><code>labs/attack-cors.html</code> — cross-origin balance theft.</li>
+      <li><code>labs/attack-clickjack.html</code> — clickjacking transfer overlay.</li>
+    </ul>
+    <p class="small muted">A full secure version of the application is preserved in the project's git history and restores with <code>git checkout .</code>.</p>
+  </section>
+
+</div>
+
+<div class="printbar"><button onclick="window.print()">Print / Save as PDF</button></div>
+</body>
+</html>

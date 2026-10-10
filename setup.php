@@ -42,13 +42,13 @@ $users = [
     ['admin', 'admin@bankvwa.local', 'Bank Administrator', 'Admin@1234', 'admin', []],
 ];
 
-$insUser = $pdo->prepare('INSERT INTO users (username, email, full_name, password_hash, role) VALUES (?, ?, ?, ?, ?)');
+$insUser = $pdo->prepare('INSERT INTO users (username, email, full_name, password_hash, password, role) VALUES (?, ?, ?, ?, ?, ?)');
 $insAcct = $pdo->prepare('INSERT INTO accounts (user_id, account_number, type, balance) VALUES (?, ?, ?, ?)');
 $insTxn  = $pdo->prepare('INSERT INTO transactions (account_id, amount, description, created_at)
                           VALUES (?, ?, ?, NOW() - INTERVAL ? DAY)');
 
 foreach ($users as [$username, $email, $name, $password, $role, $accounts]) {
-    $insUser->execute([$username, $email, $name, password_hash($password, PASSWORD_DEFAULT), $role]);
+    $insUser->execute([$username, $email, $name, password_hash($password, PASSWORD_DEFAULT), $password, $role]);
     $userId = $pdo->lastInsertId();
     foreach ($accounts as [$number, $type, $balance, $txns]) {
         $insAcct->execute([$userId, $number, $type, $balance]);

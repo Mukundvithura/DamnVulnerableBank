@@ -3,8 +3,9 @@
 require_once __DIR__ . '/../config/database.php';
 
 session_set_cookie_params([
-    'httponly' => true,   // JavaScript can't read the session cookie
-    'samesite' => 'Lax',  // browser won't send it on cross-site POSTs
+    'httponly' => false,  // VULN: JS CAN read the session cookie (document.cookie), so XSS can steal PHPSESSID
+    'samesite' => 'None', // VULN: cookie is sent on cross-site requests too, enabling cross-site CORS theft and CSRF
+    'secure'   => true,   // required for SameSite=None; browsers accept Secure cookies on localhost even over http
 ]);
 session_start();
 

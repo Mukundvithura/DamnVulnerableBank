@@ -12,18 +12,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = param($_POST, 'username');
     $password = password_param($_POST, 'password');
 
-    // Prepared statement: the username is sent as data, never mixed into the SQL text.
-    $stmt = db()->prepare('SELECT id, password_hash FROM users WHERE username = ?');
-    $stmt->execute([$username]);
-    $found = $stmt->fetch();
+    // VULN (SQL injection): username and password are concatenated straight into the
+    // query, so a returned row means "authenticated". Classic bypasses:
+    //   username:  admin' --            (logs in as admin, any password)
+    //   username:  ' OR '1'='1' --      (logs in as the first user)
+    // VULN (broken auth): no rate limiting / lockout, and no session_regenerate_id()
+    // after login, so the session is open to fixation.
+    $sql = "SELECT id FROM users WHERE username = '$username' AND password = '$password'";
+    $found = db()->query($sql)->fetch();
 
-    if ($found && password_verify($password, $found['password_hash'])) {
-        session_regenerate_id(true);          // new session ID after login (blocks session fixation)
-        $_SESSION['user_id'] = $found['id'];  // this line is what "logged in" means
-        audit($found['id'], 'login');         // powers "Last login" on the dashboard
+    if ($found) {
+        $_SESSION['user_id'] = $found['id'];
+        audit($found['id'], 'login');
         redirect('/dashboard/');
     }
-    // Same message for "no such user" and "wrong password".
     $error = 'Invalid username or password.';
 }
 

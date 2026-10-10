@@ -40,7 +40,6 @@ $brandMark = '<svg class="brand-mark" viewBox="0 0 28 28" aria-hidden="true"><re
             <a href="<?= BASE_URL ?>/banking/transactions.php"<?= $current('/banking/transactions.php') ?>>Transactions</a>
             <a href="<?= BASE_URL ?>/banking/beneficiaries.php"<?= $current('/banking/beneficiaries.php') ?>>Beneficiaries</a>
             <a href="<?= BASE_URL ?>/banking/statements.php"<?= $current('/banking/statements.php') ?>>Statements</a>
-            <a href="<?= BASE_URL ?>/labs/"<?= str_starts_with($here, BASE_URL . '/labs/') ? ' aria-current="page"' : '' ?>>Security Lab</a>
             <?php if ($user['role'] === 'admin'): // convenience only: the real check is require_admin() ?>
                 <a class="nav-admin" href="<?= BASE_URL ?>/admin/dashboard.php"<?= str_starts_with($here, BASE_URL . '/admin/') ? ' aria-current="page"' : '' ?>>Admin</a>
             <?php endif; ?>
